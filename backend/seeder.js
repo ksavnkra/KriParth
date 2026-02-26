@@ -11,7 +11,6 @@ const products = require('./data/products');
 
 dotenv.config();
 connectDB();
-
 const seed = async () => {
   try {
     // Clear existing data
