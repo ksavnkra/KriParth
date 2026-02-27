@@ -221,14 +221,21 @@ export default function StockManagement() {
               ))}
             </tbody>
           </table>
-          {entries.length === 0 && <div className="text-center py-12 text-zinc-400 text-sm">No stock entries yet</div>}
+          {entries.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4"><Building2 className="w-10 h-10 text-teal-400" /></div>
+              <p className="text-zinc-500 font-medium mb-1">No stock entries yet</p>
+              <p className="text-zinc-400 text-sm mb-4">Record your first stock purchase</p>
+              <button onClick={() => setShowModal(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white text-sm font-semibold shadow-brand hover:shadow-lg transition-all">+ Add Stock Entry</button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Add Stock Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-xl animate-scaleIn max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 animate-fadeIn p-4 pt-[5vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-xl animate-scaleIn my-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-xl font-bold">Add Stock</h3>
               <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-lg hover:bg-zinc-100 flex items-center justify-center"><X size={18} /></button>

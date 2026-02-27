@@ -3,10 +3,11 @@ const Expense = require('../models/expenseModel');
 const Product = require('../models/productModel');
 const Stock = require('../models/stockModel');
 
-const getOpenAI = () => {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here_optional') {
-    const OpenAI = require('openai');
-    return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const getGemini = () => {
+  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here') {
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
   return null;
 };
@@ -83,25 +84,20 @@ const getInsights = async (req, res) => {
       message: `Collected: ₹${Math.round(gstCollected).toLocaleString()} | Paid: ₹${Math.round(gstPaid).toLocaleString()} | Liability: ₹${Math.round(gstCollected - gstPaid).toLocaleString()}`
     });
 
-    // Try OpenAI for advanced insights
-    const openai = getOpenAI();
-    if (openai) {
+    // Try Gemini for advanced insights
+    const model = getGemini();
+    if (model) {
       try {
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a concise business analytics assistant for a POS system. Give 2-3 brief, actionable recommendations.' },
-            { role: 'user', content: `Business data: Revenue this month ₹${Math.round(thisMonthRevenue)}, last month ₹${Math.round(lastMonthRevenue)}. Expenses ₹${Math.round(thisMonthExpenses)}. Orders: ${thisMonthOrders.length}. Low stock: ${lowStockProducts.length} items. Top product: ${sortedProducts[0]?.[0] || 'N/A'}. Keep under 150 words.` }
-          ],
-          max_tokens: 250
-        });
-        insights.push({ type: 'ai', title: 'AI Recommendation', message: completion.choices[0].message.content });
+        const prompt = `You are a concise business analytics assistant for a POS system. Give 2-3 brief, actionable recommendations.\n\nBusiness data: Revenue this month ₹${Math.round(thisMonthRevenue)}, last month ₹${Math.round(lastMonthRevenue)}. Expenses ₹${Math.round(thisMonthExpenses)}. Orders: ${thisMonthOrders.length}. Low stock: ${lowStockProducts.length} items. Top product: ${sortedProducts[0]?.[0] || 'N/A'}. Keep under 150 words.`;
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        insights.push({ type: 'ai', title: 'AI Recommendation', message: response.text() });
       } catch (err) {
-        console.log('OpenAI unavailable:', err.message);
+        console.log('Gemini unavailable:', err.message);
       }
     }
 
-    res.json({ insights, hasAI: !!openai });
+    res.json({ insights, hasAI: !!model });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
